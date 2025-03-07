@@ -164,6 +164,34 @@ func (n *Node) Generate() ID {
 	return r
 }
 
+func (n *Node) GenerateWithTime(gt time.Time) ID {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	now := gt.Sub(n.epoch).Milliseconds()
+
+	if now == n.time {
+		n.step = (n.step + 1) & n.stepMask
+
+		if n.step == 0 {
+			for now <= n.time {
+				now = time.Since(n.epoch).Milliseconds()
+			}
+		}
+	} else {
+		n.step = 0
+	}
+
+	n.time = now
+
+	r := ID((now)<<n.timeShift |
+		(n.node << n.nodeShift) |
+		(n.step),
+	)
+
+	return r
+}
+
 // Int64 returns an int64 of the snowflake ID
 func (f ID) Int64() int64 {
 	return int64(f)
