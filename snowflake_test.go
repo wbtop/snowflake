@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"reflect"
 	"testing"
+	"time"
 )
 
 //******************************************************************************
@@ -21,6 +22,16 @@ func TestNewNode(t *testing.T) {
 		t.Fatalf("no error creating NewNode, %s", err)
 	}
 
+}
+
+func TestNode_GenerateWithTime(t *testing.T) {
+	node, _ := NewNode(1)
+
+	gt, _ := time.ParseInLocation(time.DateTime, "2022-02-01 00:00:00", time.Local)
+
+	id := node.GenerateWithTime(gt)
+
+	t.Logf("id: %d", id)
 }
 
 // lazy check if Generate will create duplicate IDs
