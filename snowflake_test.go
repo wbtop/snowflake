@@ -27,8 +27,8 @@ func TestNewNode(t *testing.T) {
 func TestNode_GenerateWithTime(t *testing.T) {
 	node, _ := NewNode(1)
 
-	gt, _ := time.ParseInLocation(time.DateTime, "2022-02-01 00:00:00", time.Local)
-	for i := 0; i < 20; i++ {
+	gt, _ := time.ParseInLocation(time.DateTime, "2022-02-01 00:00:01", time.Local)
+	for i := 0; i < 1000; i++ {
 		id := node.GenerateWithTime(gt)
 
 		t.Logf("id: %d \n", id)

@@ -58,7 +58,7 @@ var ErrInvalidBase32 = errors.New("invalid base32")
 // This speeds up the process tremendously.
 func init() {
 
-	for i := 0; i < len(decodeBase58Map); i++ {
+	for i := 0; i < len(encodeBase58Map); i++ {
 		decodeBase58Map[i] = 0xFF
 	}
 
@@ -66,7 +66,7 @@ func init() {
 		decodeBase58Map[encodeBase58Map[i]] = byte(i)
 	}
 
-	for i := 0; i < len(decodeBase32Map); i++ {
+	for i := 0; i < len(encodeBase32Map); i++ {
 		decodeBase32Map[i] = 0xFF
 	}
 
@@ -99,9 +99,6 @@ type ID int64
 // IDs
 func NewNode(node int64) (*Node, error) {
 
-	if NodeBits+StepBits > 22 {
-		return nil, errors.New("Remember, you have a total 22 bits to share between Node/Step")
-	}
 	// re-calc in case custom NodeBits or StepBits were set
 	// DEPRECATED: the below block will be removed in a future release.
 	mu.Lock()
@@ -138,16 +135,15 @@ func NewNode(node int64) (*Node, error) {
 func (n *Node) Generate() ID {
 
 	n.mu.Lock()
-	defer n.mu.Unlock()
 
-	now := time.Since(n.epoch).Milliseconds()
+	now := time.Since(n.epoch).Nanoseconds() / 1000000
 
 	if now == n.time {
 		n.step = (n.step + 1) & n.stepMask
 
 		if n.step == 0 {
 			for now <= n.time {
-				now = time.Since(n.epoch).Milliseconds()
+				now = time.Since(n.epoch).Nanoseconds() / 1000000
 			}
 		}
 	} else {
@@ -161,21 +157,24 @@ func (n *Node) Generate() ID {
 		(n.step),
 	)
 
+	n.mu.Unlock()
 	return r
 }
 
 func (n *Node) GenerateWithTime(gt time.Time) ID {
+
 	n.mu.Lock()
-	defer n.mu.Unlock()
 
-	now := gt.Sub(n.epoch).Milliseconds()
+	ns := time.Now().Nanosecond()
+	gt.Add(time.Nanosecond * time.Duration(ns))
 
+	now := gt.Sub(n.epoch).Nanoseconds() / 1000000
 	if now == n.time {
 		n.step = (n.step + 1) & n.stepMask
 
 		if n.step == 0 {
 			for now <= n.time {
-				now = time.Since(n.epoch).Milliseconds()
+				now = time.Since(n.epoch).Nanoseconds() / 1000000
 			}
 		}
 	} else {
@@ -189,6 +188,7 @@ func (n *Node) GenerateWithTime(gt time.Time) ID {
 		(n.step),
 	)
 
+	n.mu.Unlock()
 	return r
 }
 
