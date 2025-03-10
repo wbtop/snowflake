@@ -27,12 +27,39 @@ func TestNewNode(t *testing.T) {
 func TestNode_GenerateWithTime(t *testing.T) {
 	node, _ := NewNode(1)
 
-	gt, _ := time.ParseInLocation(time.DateTime, "2022-02-01 00:00:01", time.Local)
-	for i := 0; i < 1000; i++ {
+	ret := make(map[int64]int64, 0)
+
+	gt, _ := time.ParseInLocation(time.DateTime, "2011-03-06 10:45:07", time.Local)
+
+	for i := 0; i < 3; i++ {
 		id := node.GenerateWithTime(gt)
+
+		ret[id.Int64()] = id.Int64()
 
 		t.Logf("id: %d \n", id)
 	}
+
+	gt, _ = time.ParseInLocation(time.DateTime, "2024-02-01 00:00:03", time.Local)
+
+	for i := 0; i < 3; i++ {
+		id := node.GenerateWithTime(gt)
+
+		ret[id.Int64()] = id.Int64()
+
+		t.Logf("id: %d \n", id)
+	}
+
+	gt, _ = time.ParseInLocation(time.DateTime, "2015-02-01 00:00:03", time.Local)
+
+	for i := 0; i < 3; i++ {
+		id := node.GenerateWithTime(gt)
+
+		ret[id.Int64()] = id.Int64()
+
+		t.Logf("id: %d \n", id)
+	}
+
+	t.Logf("ret number: %d", len(ret))
 
 }
 

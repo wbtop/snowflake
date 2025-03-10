@@ -135,6 +135,7 @@ func NewNode(node int64) (*Node, error) {
 func (n *Node) Generate() ID {
 
 	n.mu.Lock()
+	defer n.mu.Unlock()
 
 	now := time.Since(n.epoch).Nanoseconds() / 1000000
 
@@ -157,38 +158,37 @@ func (n *Node) Generate() ID {
 		(n.step),
 	)
 
-	n.mu.Unlock()
 	return r
 }
 
 func (n *Node) GenerateWithTime(gt time.Time) ID {
 
 	n.mu.Lock()
+	defer n.mu.Unlock()
 
-	ns := time.Now().Nanosecond()
-	gt.Add(time.Nanosecond * time.Duration(ns))
+	now := time.Now()
 
-	now := gt.Sub(n.epoch).Nanoseconds() / 1000000
-	if now == n.time {
-		n.step = (n.step + 1) & n.stepMask
-
-		if n.step == 0 {
-			for now <= n.time {
-				now = time.Since(n.epoch).Nanoseconds() / 1000000
-			}
-		}
-	} else {
-		n.step = 0
+	// 计算过去时间的时间戳
+	pastTimestamp := gt.Sub(n.epoch).Milliseconds()
+	if pastTimestamp < 0 {
+		return 0
 	}
 
-	n.time = now
+	// 如果过去时间大于当前时间，返回错误
+	currentTimestamp := now.Sub(n.epoch).Milliseconds()
+	if pastTimestamp > currentTimestamp {
+		return 0
+	}
 
-	r := ID((now)<<n.timeShift |
+	n.step = (n.step + 1) & n.stepMask
+
+	n.time = pastTimestamp
+
+	r := ID((pastTimestamp)<<n.timeShift |
 		(n.node << n.nodeShift) |
 		(n.step),
 	)
 
-	n.mu.Unlock()
 	return r
 }
 
